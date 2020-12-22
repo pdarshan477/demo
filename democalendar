@@ -197,3 +197,26 @@ profileInfoViewmodel
     }
     
     
+  fun addEditPatient(isSamePatient : String): AddPatientRequest{
+        var  userID = getDefaultPreference()?.getString(SharePreferenceKeyword.PROVIDER_ID, "")!!
+        var  locationId = getDefaultPreference()?.getString(SharePreferenceKeyword.LOCATION_ID, "")!!
+
+        var addPatientRequest = AddPatientRequest()
+        addPatientRequest.inputDataset = InputDataset()
+        addPatientRequest.inputDataset?.input = Input()
+        addPatientRequest.inputDataset?.input?.firstName = edtFirstName.text.toString()
+        addPatientRequest.inputDataset?.input?.lastName = edtLastName.text.toString()
+        addPatientRequest.inputDataset?.input?.suffix = edtSuffix.selectedItem.toString()
+        addPatientRequest.inputDataset?.input?.dateOfBirth = edtDob.text.toString()
+        addPatientRequest.inputDataset?.input?.gender = genderValue
+        addPatientRequest.inputDataset?.input?.patientPhoto = ProfileBase64Encoded
+        addPatientRequest.inputDataset?.input?.patientID = patientId
+        addPatientRequest.inputDataset?.input?.userID = userID
+        addPatientRequest.inputDataset?.input?.locationID = locationId
+        addPatientRequest.inputDataset?.input?.isSamePatient = isSamePatient
+
+
+        return addPatientRequest
+
+
+    }
