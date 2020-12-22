@@ -1,0 +1,199 @@
+  fun callAddPatient(){
+        if(isEdit)
+            addEditPatientViewModel.updatePatient(serviceUrl,  RequestParam.createRequestParam(addEditPatient("1").inputDataset?.input))
+        else
+            addEditPatientViewModel.checkPatientAvailableOrNot(serviceUrl,  RequestParam.createRequestParam(addEditPatient("0").inputDataset?.input))
+//            addEditPatientViewModel.addPatient(serviceUrl,  RequestParam.createRequestParam(addEditPatient("1").inputDataset?.input))
+    }
+    
+    
+       fun checkPatientObserver(){
+        addEditPatientViewModel.checkPatientResponse.observe(this,
+            androidx.lifecycle.Observer {
+                parsingGeneralObserverResponse(this@AddEditPatientActivity, it) {
+                    if (it is ResultResponse.Success ) {
+                        try {
+                            if (it.data.outputDataset?.headers?.get(0)?.messageNo?.get(0).equals(
+                                    "1099",
+                                    ignoreCase = true
+                                ) ?: false
+                            ) {
+                                val builder = AlertDialog.Builder(this,android.R.style.ThemeOverlay_Material_Dialog)
+                                //set title for alert dialog
+//                                builder.setTitle(R.string.dialogTitle)
+                                //set message for alert dialog
+                                builder.setMessage(it.data.outputDataset?.headers?.get(0)?.messageText?.get(0))
+//                                builder.setIcon(android.R.drawable.ic_dialog_alert)
+
+                                //performing positive action
+                                builder.setPositiveButton("Yes"){dialogInterface, which ->
+                                    addEditPatientViewModel.addPatient(serviceUrl,  RequestParam.createRequestParam(addEditPatient("1").inputDataset?.input))
+                                }
+
+                                //performing negative action
+                                builder.setNegativeButton("No"){dialogInterface, which ->
+
+                                }
+                                // Create the AlertDialog
+                                val alertDialog: AlertDialog = builder.create()
+                                // Set other dialog properties
+                                alertDialog.setCancelable(false)
+                                alertDialog.show()
+                            }else{
+                                var isFinish = false
+                                for(value in it.data.outputDataset?.datasets!!){
+                                    for(childvalue in value.dataset!!){
+                                        isFinish =  !childvalue.iD.equals("")
+                                    }
+                                }
+                                if(isFinish) finish()
+                               // addEditPatientViewModel.addPatient(serviceUrl,  RequestParam.createRequestParam(addEditPatient("1").inputDataset?.input))
+                            }
+                        }catch (e : Exception){}
+
+                    }
+                }
+            })
+
+    }
+ 
+
+
+profileInfoViewmodel
+  var checkPatientResponse = MutableLiveData<ResultResponse<AddPatientResponse>>()
+  
+ fun checkPatientAvailableOrNot(serviceURl: String, input: String) {
+        patientInfoRepository.callAPI(ADD_PATIENT, serviceURl, input) {
+            checkPatientResponse.postValue(it as ResultResponse<AddPatientResponse>)
+        }
+    }
+    
+    
+    
+ PatientInfoRepository
+ 
+     fun callAPI(
+        methodName: String,
+        serviceUrl: String,
+        request: String,
+        callback: (ResultResponse<Any>) -> Unit
+    ) {
+        val okHttpClient = OkHttpClient()
+        val okHttpRequest = OkHttpRequest(okHttpClient)
+
+        val map: HashMap<String, String> = hashMapOf(LBL_REQUEST to request)
+        okHttpRequest.POST(
+            serviceUrl.plus(methodName),
+            map,
+            object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    callback(ResultResponse.Error(e))
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    if (response.code == 200) {
+                        val resultJson = getJSONStringFromXML(response.body!!.string()) ?: ""
+                        val generalErrorModel = checkResponseHasErrors(resultJson)
+                        if (generalErrorModel.status && !(generalErrorModel.messageNoList.size > 0 && generalErrorModel.messageNoList.get(0).equals("1099"))) {
+                            callback(ResultResponse.ErrorStringMessage(generalErrorModel.messageTextList[0]))
+                        } else {
+                            when (methodName) {
+                                ADD_PATIENT -> {
+                                    if(generalErrorModel.messageNoList.size > 0 && generalErrorModel.messageNoList.get(0).equals("1099")){
+                                       var mainJsonObj = JSONObject(resultJson)
+                                        var outputDetaSet = mainJsonObj.optJSONObject("OutputDataset")
+                                        var headers = outputDetaSet.optJSONArray("Headers")
+                                        var dataSet = outputDetaSet.optJSONObject("Datasets")
+                                        var errors = outputDetaSet.optJSONObject("Errors")
+
+                                        val headersObjType: Type = object : TypeToken<ArrayList<AddPatientResponse.Header>?>() {}.type
+                                        val headersObjList = Gson().fromJson<ArrayList<AddPatientResponse.Header>?>(headers.toString(), headersObjType)
+                                        val dataSetObj = Gson().fromJson(dataSet.toString(), AddPatientResponse.Dataset::class.java)
+                                        val errorObj = Gson().fromJson(errors.toString(), AddPatientResponse.Errors::class.java)
+
+                                        var response = AddPatientResponse()
+                                        var outDataSetObj = AddPatientResponse.OutputDataset()
+                                        outDataSetObj.datasets1 = dataSetObj
+                                        outDataSetObj.errors = errorObj
+                                        outDataSetObj.headers = ArrayList()
+                                        headersObjList?.let { outDataSetObj.headers?.addAll(it) }
+
+                                        response.outputDataset = outDataSetObj
+
+
+                                        callback(ResultResponse.Success(response))
+                                    }else{
+                                        var mainJsonObj = JSONObject(resultJson)
+                                        var outputDetaSet = mainJsonObj.optJSONObject("OutputDataset")
+                                        var headers = outputDetaSet.optJSONArray("Headers")
+                                        var dataSet = outputDetaSet.optJSONArray("Datasets")
+                                        var errors = outputDetaSet.optJSONObject("Errors")
+
+                                        val headersObjType: Type = object : TypeToken<ArrayList<AddPatientResponse.Header>?>() {}.type
+                                        val headersObjList = Gson().fromJson<ArrayList<AddPatientResponse.Header>?>(headers.toString(), headersObjType)
+                                        val dataObjType: Type = object : TypeToken<ArrayList<AddPatientResponse.Dataset>?>() {}.type
+                                        val dataSetObj = Gson().fromJson<ArrayList<AddPatientResponse.Dataset>?>(dataSet.toString(), dataObjType)
+                                        val errorObj = Gson().fromJson(errors.toString(), AddPatientResponse.Errors::class.java)
+
+                                        var response = AddPatientResponse()
+                                        var outDataSetObj = AddPatientResponse.OutputDataset()
+                                        outDataSetObj.datasets = dataSetObj
+                                        outDataSetObj.errors = errorObj
+                                        outDataSetObj.headers = ArrayList()
+                                        headersObjList?.let { outDataSetObj.headers?.addAll(it) }
+
+                                        response.outputDataset = outDataSetObj
+
+
+                                        /* val response =
+                                             Gson().fromJson(
+                                                 resultJson,
+                                                 AddPatientResponse::class.java
+                                             )*/
+                                        callback(ResultResponse.Success(response))
+                                    }
+                                }
+                                UPDATE_PATIENT -> {
+                                    val response =
+                                        Gson().fromJson(
+                                            resultJson,
+                                            AddPatientResponse::class.java
+                                        )
+                                    callback(ResultResponse.Success(response))
+                                }
+                                SUFFIX-> {
+                                    val response =
+                                        Gson().fromJson(
+                                            resultJson,
+                                            GetSuffix::class.java
+                                        )
+                                    callback(ResultResponse.Success(response))
+                                }
+                                RequestConstant.STICKY_DETAILS-> {
+                                    val response =
+                                        Gson().fromJson(
+                                            resultJson,
+                                            StickyDetailsResponse::class.java
+                                        )
+                                    callback(ResultResponse.Success(response))
+                                }
+                                RequestConstant.CHANGE_FLAG_STATUS-> {
+                                    val response =
+                                        Gson().fromJson(
+                                            resultJson,
+                                            ChangeFlagStatusResponse::class.java
+                                        )
+                                    callback(ResultResponse.Success(response))
+                                }
+
+                            }
+
+                        }
+                    } else {
+                        callback(ResultResponse.ErrorStringMessage(response.message))
+                    }
+                }
+            })
+    }
+    
+    
