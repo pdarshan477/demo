@@ -220,3 +220,11 @@ profileInfoViewmodel
 
 
     }
+    
+    
+    POST 'https://staging-uat.ipatientcare.net/iPatientCareEWS/dashboardjson.asmx':
+Headers: [
+  Content-Type : application/soap+xml; charset=utf-8
+  SOAPACTION : http://iPatientCare/WebService/SaveFlagDetailsforAttachment
+]
+<?xml version="1.0" encoding="utf-8"?><soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"> <soap12:Body> <SaveFlagDetailsforAttachment xmlns="http://iPatientCare/WebService"> <Request><![CDATA[{"InputDataset":{"Input":{"Patient":"Atul, Pipalava","ToUserID":"D0012","IsEditableFlag":"","IsSendToPatient":"False","IsEnableCompletedRadioButton":"True","Mode":"NEW","IsAllowCompleteAlert":"False","Subject":"Test iOS, Send a letter to patient when all test results are received","Priority":"N","ToUser":"James Smith","ExpirationDate":"","SectionKey":"ALL","ToDoID":"","StatusDesc":"Pending","LocationID":"00003","Status":"P","FromUser":"James Smith","UserID":"D0012","FlagDate":"12\/31\/2020","Message":"Send a letter to patient when all test results are received","IsActive":false,"CompletedDateTime":"","CompletedMessage":"","CompletionDetail":"","IsAttachment":"False","Task":"Send a letter to patient when all test results are received","PatientID":"756D9F42A8554A13A5","FlagTime":"20:00","FromUserID":"D0012","IsSendOnDashboard":"False","PriorityDesc":"Normal"},"Credentials":{"OrganizationCode":"iuat","LoginUserID":"D0012","AuthenticationID":"ipc","TokenID":"","Password":"iPCSD$123","UserID":"D0012","LocationID":"00003"},"RequestDetails":{"Type":"iPhone","Details":"Simulator (iPhone13,1), iOS 14.3"}}}]]></Request><FileName></FileName> <Images></Images></SaveFlagDetailsforAttachment></soap12:Body></soap12:Envelope>
